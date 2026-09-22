@@ -654,9 +654,24 @@ class EvaluatorAutomation:
 
     def capturar_tela_cheia_b64(self) -> str:
         """
-        Captura um screenshot da tela inteira do navegador em base64.
+        Garante o carregamento das imagens antes de capturar o screenshot da tela.
         """
         try:
+            # 1. Aguardar carregamento de imagens no DOM e forçar renderização
+            self.driver.execute_script("""
+                let imgs = document.querySelectorAll('img');
+                imgs.forEach(img => {
+                    if (img && img.scrollIntoView) {
+                        img.scrollIntoView({ behavior: 'instant', block: 'center' });
+                    }
+                });
+            """)
+            time.sleep(1.2)
+
+            # 2. Voltar ao topo da página para captura limpa
+            self.driver.execute_script("window.scrollTo(0, 0);")
+            time.sleep(0.5)
+
             screenshot_png = self.driver.get_screenshot_as_png()
             return base64.b64encode(screenshot_png).decode("utf-8")
         except Exception as e:
