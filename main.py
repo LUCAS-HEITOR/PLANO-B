@@ -72,20 +72,42 @@ if not API_KEY:
             print(f"[API] Erro ao ler api_key.txt: {e}")
 
 
-# Base URL (padrão: endpoint OpenAI compatível do Google Gemini)
+# Detecção inteligente de provedor (Google AI Studio vs OpenRouter)
+is_google_direct_key = API_KEY.startswith("AIzaSy")
+
+if is_google_direct_key:
+    DEFAULT_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai"
+    DEFAULT_MODEL = "gemini-2.0-flash"
+else:
+    DEFAULT_BASE_URL = "https://openrouter.ai/api/v1"
+    DEFAULT_MODEL = "google/gemini-2.0-flash-001"
+
+# Base URL
 API_BASE_URL = (
     os.getenv("GEMINI_BASE_URL")
     or os.getenv("DEEPSEEK_BASE_URL")
-    or "https://generativelanguage.googleapis.com/v1beta/openai"
+    or DEFAULT_BASE_URL
 ).strip()
 
+# Se for uma chave OpenRouter enviada para a URL do Google, ajusta a URL automaticamente
+if not is_google_direct_key and "generativelanguage.googleapis.com" in API_BASE_URL:
+    print("[API] Chave OpenRouter/Externa detectada. Redirecionando endpoint para OpenRouter...")
+    API_BASE_URL = "https://openrouter.ai/api/v1"
 
-# Modelo (padrão: gemini-2.0-flash)
+# Modelo
 MODEL_NAME = (
     os.getenv("GEMINI_MODEL")
     or os.getenv("DEEPSEEK_MODEL")
-    or "gemini-2.0-flash"
+    or DEFAULT_MODEL
 ).strip()
+
+# Ajuste de formato do modelo conforme o provedor
+if "openrouter.ai" in API_BASE_URL:
+    if MODEL_NAME in ("gemini-2.0-flash", "gemini-flash", "gemini-1.5-flash"):
+        MODEL_NAME = "google/gemini-2.0-flash-001"
+elif "generativelanguage.googleapis.com" in API_BASE_URL:
+    if MODEL_NAME.startswith("google/"):
+        MODEL_NAME = MODEL_NAME.replace("google/", "")
 
 
 # URL padrão da plataforma
