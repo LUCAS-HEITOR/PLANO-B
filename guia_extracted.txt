@@ -1,0 +1,145 @@
+=== PAGE 1 ===
+🧠 Guia de comparação de qualidade 
+visual e estética de alto nível 
+Regras de pagamento 
+Para garantir uma compensação justa, mantendo a alta qualidade do resultado, empregamos o 
+seguinte procedimento: 
+1. Você será obrigado a trabalhar através de 40 amostras de treinamento, que são muito 
+importantes para realmente entender as regras. O treinamento não é pago.  
+2. Depois disso, você terá que fazer um exame, que também não é pago. O exame 
+consiste em 25 tarefas. Se a sua precisão exceder 70%, você será imediatamente 
+passado para as tarefas reais. Se a sua precisão for menor, você será mostrado 40 
+tarefas de treinamento antes do próximo exame de 25 tarefas. Este processo repete até 
+a precisão do último exame ultrapassa 70%.  
+3. As tarefas reais são pagas $0.9 por acerto. Cada HIT consiste em 20 tarefas.  
+4. Vamos reavaliar seu desempenho de vez em quando. Se cair abaixo de certos 
+limiares, você será solicitado a pegar o trem e examinar novamente.  
+A tarefa não é difícil, mas existem algumas regras e casos de canto, portanto, certifique-se 
+para ler atentamente a instrução e abordar o treinamento com atenção.  
+🎨 Excelência Visual: Avaliação de Imagem Profissional 
+  IMPORTANTE: por favor, leia isso com atenção antes de começar. Este projeto 
+procura resultados de alta qualidade, profissionais e estéticos. A seguir o prompt sozinho não 
+ganha aqui: 
+• A relevância rápida é um "portão macio" - é necessário, mas não o suficiente para 
+vencer. 
+• Beleza Visual, Anatomia e Qualidade Técnica têm peso igual com o prompt. 
+• Um pronto-ser "tecnicamente perfeito" que parece feio ou quebrado (dedos extras, 
+iluminação ruim, pele "plástica") deve perder para uma imagem bonita e de alta 
+qualidade que captura a ideia central. 
+ 
+Dicas contextuais 
+Você pode ocasionalmente encontrar personagens desconhecidos, estilos, estética, lugares ou 
+eventos nos prompts.  
+
+=== PAGE 2 ===
+Para ajudá-lo a avaliá-los, introduzimos um sistema de Dicas Contextuais.  
+Para entidades desconhecidas mencionadas em um prompt, este sistema fornece: 
+• Uma breve descrição da entidade. 
+• 5 imagens de referência atuando como exemplos visuais. 
+• Uma breve explicação do que é o objeto e por que essas imagens específicas o 
+representam bem. 
+Importante: dicas contextuais são um guia útil, mas não são a verdade absoluta. Se você já é 
+altamente conhecedor da entidade mencionada no prompt, confie em sua própria experiência 
+para decidir qual imagem é melhor. 
+ 
+  Visão Geral da Tarefa Seu papel é o de um Editor Profissional ou Diretor de Arte. 
+Você está escolhendo a melhor imagem para ser apresentado em um livro de marca 
+premium, um anúncio comercial ou um portfólio de arte profissional. 
+Você verá duas imagens geradas a partir do mesmo prompt. 
+  Sua tarefa é escolher a imagem que representa o melhor resultado profissional 
+geral. 
+ 
+🖥️ Visão geral da interface 
+A interface da tarefa consiste em dois blocos principais. 
+ 
+1. 1. Bloco imediato: 
+A solicitação original do usuário (e tradução para o inglês, se necessário). Isso define o 
+contexto, estilo e assunto. 
+ 
+
+=== PAGE 3 ===
+2. 2. Bloco de comparação: 
+Duas imagens. Clique para expandir para a resolução completa. Você pode ampliar e 
+diminuir o zoom. Use as teclas de seta esquerda / direita para alternar entre elas para 
+comparação próxima. 
+  Pressione 1 ou 2 para escolher a imagem correspondente e, em seguida, Enter para 
+enviar e vá para a próxima tarefa. Se algo necessário ainda estiver faltando, Enter não será 
+enviado — a interface apontará para o que resta para preencher. As teclas numéricas 
+funcionam apenas enquanto a visualização em tamanho real está fechada; dentro dela, ← / → 
+alterna entre as imagens e o Esc a fecha. 
+ 
+ 
+⚖️ A Avaliação "Triple Balance" 
+Esta tarefa requer um julgamento global informado. Não use uma "lista de verificação" 
+onde a Relevância Pronta sempre ganha. Em vez disso, avalie o equilíbrio desses três pilares: 
+1. 1. Valor estético e artístico 
+• Composição: O enquadramento é profissional? (Evite o corte estranho ou o espaço 
+vazio excessivo). 
+• Cor & iluminação: A iluminação é expressiva? As cores são harmoniosas? (Evite a 
+aparência "néon-plástico" ou tons planos e lamacentos). 
+• Criatividade: A imagem parece uma peça de arte pensativa ou uma foto de alta 
+qualidade? 
+2. 2. Integridade Técnica & Estrutural 
+• Anatomia: as figuras humanas e animais estão corretas? (Sem membros extras, 
+rostos de "derretimento" ou corpos distorcidos). 
+• Lógica Física: Os objetos interagem naturalmente? (Nenhum recorte ou itens 
+flutuantes, a menos que solicitado). 
+• Clareza da Imagem: A imagem é nítida e detalhada? (Evite desfoque não 
+intencional, ruído pesado ou texturas "molesas"). 
+3. Intenção & Relevância Pronta 
+• Ideia do Núcleo: A imagem captura o assunto principal e o humor do prompt? 
+
+=== PAGE 4 ===
+• Soft Gate: Pequenas faltas no prompt (por exemplo, "5 flores" em vez de "6") podem 
+ser perdoadas se a imagem for significativamente mais bonita e profissional do que a 
+alternativa. 
+ 
+⚙️ Aspectos De Avaliação Detalhados 
+🛡️ NSFW e Segurança (Prioridade Absoluta) 
+Nenhum conteúdo NSFW é permitido (nudez, violência explícita, etc.). Esta é a única regra 
+que continua a ser um "portão duro". Se uma imagem é "mais limpa" e mais segura, ela 
+deve ser preferida independentemente da beleza. 
+📏 Relevância Pronta (O "Portão Suave") 
+Neste projeto, a relevância é sobre a intenção, não apenas a contagem de objetos. 
+• Foco no Núcleo: Ele entrega o que o usuário queria? 
+• Regra de trade-off: Se a Imagem A é uma correspondência de prompt 100% 
+perfeita, mas parece "quebrada" (anatomia ruim / feia), e a Imagem B é uma 
+correspondência de 90%, mas parece impressionante e profissional, escolha 
+Imagem B. 
+• Desvios Sérios: Se a imagem perder completamente o assunto principal (por 
+exemplo, solicitou um carro, conseguiu uma casa), ela não pode ganhar. 
+🦴 Anatômica e Correção Estrutural 
+Em um projeto profissional, "glitches de IA" são inaceitáveis. 
+• Verifique cuidadosamente: Dedos, membros, olhos e articulações. 
+• Lógica estrutural: Olhe para edifícios, linhas de perspectiva e como os objetos 
+repousam sobre as superfícies. 
+• Texto: Se houver texto na imagem, prefira fontes legíveis e limpas em vez de 
+"gibberish" ou letras desencadeadas. 
+🚫 Ausência de Artefatos Visuais 
+Uma imagem profissional deve ser "limpa". Penalizar imagens com: 
+• Ruído técnico: excesso de afiação, artefatos de compressão ou "sopa de pixel". 
+• Alucinações de IA: bolhas aleatórias, partes flutuantes ou objetos que se fundem em 
+segundo plano. 
+
+=== PAGE 5 ===
+• Quadros/marcas: a menos que solicitado, evite imagens com bordas indesejadas, 
+assinaturas ou grades de transparência "falsas" (checkerboards). 
+🌟 Excelência Artística (O Fator Decisivo) 
+Quando ambas as imagens estão "ok" em termos de prompt e anatomia, o vencedor é 
+decidido pela beleza: 
+• Poses e Expressão: Prefira poses naturais, críveis e expressões genuínas. Penalize 
+poses simétricas e simples, rígidas, sem vida ou, obviamente, linguagem corporal 
+artificial que quebra a imersão. 
+• Qualidade do material: A pele se parece com a pele? O metal parece metal? Evite 
+texturas "plásticas" ou "borradeira". 
+• Impacto emocional: a imagem tem um fator "uau"? 
+• Iluminação: Prefira imagens com profundidade, sombras realistas e configurações de 
+iluminação de nível profissional sobre cenas planas ou "super-expostas". 
+ 
+🏁 Regra de Decisão Final 
+Pergunte a si mesmo: "Se eu fosse um cliente pagando por este trabalho, qual eu 
+realmente usaria?" 
+• Não conte apenas quantas palavras-chave estão presentes. 
+• Não ignore um "rosto de fusão" só porque as cores estão certas. 
+• Escolha a obra de arte mais "completa" e profissional. 
+ 
