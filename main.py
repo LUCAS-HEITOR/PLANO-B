@@ -98,6 +98,64 @@ SITE_URL = os.getenv("TARGET_URL") or DEFAULT_LIVE_URL
 
 
 # ==============================================================================
+# CARREGAMENTO DO GUIA.PDF
+# ==============================================================================
+
+def carregar_texto_do_guia() -> str:
+    """
+    Carrega o texto das regras a partir de Guia.pdf ou guia_extracted.txt.
+    """
+    pdf_path = os.path.join(SCRIPT_DIR, "Guia.pdf")
+    txt_path = os.path.join(SCRIPT_DIR, "guia_extracted.txt")
+
+    # 1. Tentar ler do TXT extraído previamente
+    if os.path.exists(txt_path):
+        try:
+            with open(txt_path, "r", encoding="utf-8") as f:
+                conteudo = f.read().strip()
+                if conteudo:
+                    print(f"[GUIA] Regras do Guia.pdf carregadas via guia_extracted.txt ({len(conteudo)} caracteres).")
+                    return conteudo
+        except Exception as e:
+            print(f"[GUIA] Erro ao ler guia_extracted.txt: {e}")
+
+    # 2. Tentar extrair do Guia.pdf usando bibliotecas de PDF
+    if os.path.exists(pdf_path):
+        for lib in ("pypdf", "PyPDF2"):
+            try:
+                mod = __import__(lib)
+                reader = mod.PdfReader(pdf_path)
+                texto = ""
+                for page in reader.pages:
+                    t = page.extract_text()
+                    if t:
+                        texto += t + "\n"
+                if texto.strip():
+                    print(f"[GUIA] Regras extraídas de Guia.pdf usando {lib} ({len(texto)} caracteres).")
+                    return texto.strip()
+            except Exception:
+                pass
+
+        try:
+            import fitz
+            doc = fitz.open(pdf_path)
+            texto = ""
+            for page in doc:
+                texto += page.get_text() + "\n"
+            if texto.strip():
+                print(f"[GUIA] Regras extraídas de Guia.pdf usando fitz ({len(texto)} caracteres).")
+                return texto.strip()
+        except Exception:
+            pass
+
+    print("[GUIA] AVISO: Não foi possível ler Guia.pdf ou guia_extracted.txt. Usando regras padrão.")
+    return ""
+
+
+GUIA_REGRAS_TEXT = carregar_texto_do_guia()
+
+
+# ==============================================================================
 # VERIFICAÇÃO DA CONFIGURAÇÃO
 # ==============================================================================
 
@@ -107,6 +165,7 @@ print(" CONFIGURAÇÃO")
 print("=" * 70)
 print(f"[ENV] Arquivo: {ENV_PATH}")
 print(f"[ENV] Existe: {'SIM' if os.path.exists(ENV_PATH) else 'NÃO'}")
+print(f"[GUIA] Regras Guia.pdf: {'CARREGADO (' + str(len(GUIA_REGRAS_TEXT)) + ' chars)' if GUIA_REGRAS_TEXT else 'NÃO ENCONTRADO'}")
 print(f"[API] Chave: {'CARREGADA' if API_KEY else 'NÃO ENCONTRADA'}")
 print(f"[API] Base URL: {API_BASE_URL}")
 print(f"[API] Modelo: {MODEL_NAME}")
@@ -119,10 +178,16 @@ print()
 # REGRAS DO GUIA DE AVALIAÇÃO
 # ==============================================================================
 
-SYSTEM_PROMPT = """
+SYSTEM_PROMPT = f"""
 Você é um Diretor de Arte e Editor Profissional avaliando tarefas de comparação de imagens geradas por Inteligência Artificial exibidas na tela do navegador.
 
-Sua missão é analisar a captura de tela inteira do navegador e escolher a melhor opção (A ou B) com base no Guia de Comparação Estética.
+Sua missão é analisar a captura de tela inteira do navegador e escolher a melhor opção (A ou B / Imagem 1 ou Imagem 2) com base RIGOROSA nas regras do Guia de Avaliação abaixo:
+
+======================================================================
+REGRAS OFICIAIS DO GUIA DE AVALIAÇÃO E COMPARAÇÃO VISUAL (Guia.pdf):
+======================================================================
+{GUIA_REGRAS_TEXT}
+======================================================================
 
 Você DEVE aplicar o Triple Balance (Triplo Equilíbrio):
 
@@ -149,10 +214,10 @@ RESPOSTA OBRIGATÓRIA:
 
 Responda EXCLUSIVAMENTE um objeto JSON neste formato:
 
-{
+{{
     "escolha": "A",
-    "justificativa": "Explicação em português da razão técnica/estética da escolha entre A e B."
-}
+    "justificativa": "Explicação em português com embasamento no Guia.pdf da razão técnica/estética da escolha entre A e B."
+}}
 
 O campo "escolha" deve obrigatoriamente ser a letra "A" ou a letra "B" (ou 1 ou 2).
 """
