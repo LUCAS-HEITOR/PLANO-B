@@ -47,9 +47,11 @@ import requests
 # Navegador
 BROWSER_NAME = os.getenv("BROWSER", "firefox").lower()
 
-# Chave da API
+# Chave da API (suporta GEMINI_API, GEMINI_API_KEY, DEEPSEEK_API_KEY ou OPENAI_API_KEY)
 API_KEY = (
-    os.getenv("DEEPSEEK_API_KEY")
+    os.getenv("GEMINI_API")
+    or os.getenv("GEMINI_API_KEY")
+    or os.getenv("DEEPSEEK_API_KEY")
     or os.getenv("OPENAI_API_KEY")
     or ""
 ).strip()
@@ -70,17 +72,19 @@ if not API_KEY:
             print(f"[API] Erro ao ler api_key.txt: {e}")
 
 
-# Base URL
+# Base URL (padrão: endpoint OpenAI compatível do Google Gemini)
 API_BASE_URL = (
-    os.getenv("DEEPSEEK_BASE_URL")
-    or "https://openrouter.ai/api/v1"
+    os.getenv("GEMINI_BASE_URL")
+    or os.getenv("DEEPSEEK_BASE_URL")
+    or "https://generativelanguage.googleapis.com/v1beta/openai"
 ).strip()
 
 
-# Modelo
+# Modelo (padrão: gemini-2.0-flash)
 MODEL_NAME = (
-    os.getenv("DEEPSEEK_MODEL")
-    or "deepseek/deepseek-r1"
+    os.getenv("GEMINI_MODEL")
+    or os.getenv("DEEPSEEK_MODEL")
+    or "gemini-2.0-flash"
 ).strip()
 
 
@@ -240,10 +244,8 @@ def avaliar_tela_com_deepseek(
         "SUA_CHAVE_API"
     ):
         raise RuntimeError(
-            "DEEPSEEK_API_KEY não encontrada.\n"
-            f"Verifique o arquivo .env em:\n{ENV_PATH}\n\n"
-            "Exemplo:\n"
-            "DEEPSEEK_API_KEY=sk-or-v1-xxxxxxxx"
+            "Chave de API (GEMINI_API / API_KEY) não encontrada.\n"
+            f"Verifique o arquivo .env em:\n{ENV_PATH}\n"
         )
 
     headers = {
