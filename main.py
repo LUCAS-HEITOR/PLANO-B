@@ -120,11 +120,9 @@ print()
 # ==============================================================================
 
 SYSTEM_PROMPT = """
-Você é um Diretor de Arte e Editor Profissional avaliando duas imagens
-geradas por Inteligência Artificial (Imagem 1 e Imagem 2).
+Você é um Diretor de Arte e Editor Profissional avaliando tarefas de comparação de imagens geradas por Inteligência Artificial exibidas na tela do navegador.
 
-Sua missão é escolher a melhor imagem com base rigorosa no Guia de
-Comparação Estética.
+Sua missão é analisar a captura de tela inteira do navegador e escolher a melhor opção (A ou B) com base no Guia de Comparação Estética.
 
 Você DEVE aplicar o Triple Balance (Triplo Equilíbrio):
 
@@ -135,21 +133,14 @@ Você DEVE aplicar o Triple Balance (Triplo Equilíbrio):
    - Fator Uau e apelo visual geral.
 
 2. INTEGRIDADE TÉCNICA E ESTRUTURAL (Peso Elevado):
-   - Anatomia correta.
-   - Mãos, dedos, rostos, olhos e articulações corretos.
+   - Anatomia correta (mãos, dedos, rostos, olhos, articulações).
    - Sem membros extras, partes derretidas ou rostos deformados.
-   - Lógica física.
-   - Sem objetos flutuantes, recortados ou fusões bizarras.
-   - Ausência de artefatos.
-   - Sem ruído, desfoque não intencional, assinaturas ou bordas indesejadas.
+   - Lógica física (sem objetos flutuantes, recortados ou fusões bizarras).
+   - Ausência de artefatos, ruído, desfoque não intencional ou bordas indesejadas.
 
 3. INTENÇÃO E RELEVÂNCIA DO PROMPT (Soft Gate):
-   - A imagem deve capturar a ideia central e o tema principal do prompt.
-
-   REGRA DE TRADE-OFF:
-   Se a Imagem 1 cumpre 100% das palavras do prompt mas tem anatomia
-   quebrada/glitches, e a Imagem 2 cumpre 90% mas é deslumbrante e
-   biologicamente perfeita, a Imagem 2 DEVE VENCER.
+   - A imagem deve capturar a ideia central do prompt.
+   - REGRA DE TRADE-OFF: Se a Opção A cumpre 100% do prompt mas tem anatomia quebrada/glitches, e a Opção B cumpre 90% mas é deslumbrante e tecnicamente perfeita, a Opção B DEVE VENCER.
 
 4. SEGURANÇA E NSFW (Hard Gate):
    - Rejeitar conteúdo explícito ou NSFW.
@@ -159,11 +150,11 @@ RESPOSTA OBRIGATÓRIA:
 Responda EXCLUSIVAMENTE um objeto JSON neste formato:
 
 {
-    "escolha": 1,
-    "justificativa": "Explicação em português da razão técnica/estética da escolha entre 1 ou 2."
+    "escolha": "A",
+    "justificativa": "Explicação em português da razão técnica/estética da escolha entre A e B."
 }
 
-O campo "escolha" deve obrigatoriamente ser o número 1 ou o número 2.
+O campo "escolha" deve obrigatoriamente ser a letra "A" ou a letra "B" (ou 1 ou 2).
 """
 
 
@@ -171,22 +162,13 @@ O campo "escolha" deve obrigatoriamente ser o número 1 ou o número 2.
 # FUNÇÃO DE AVALIAÇÃO DA API
 # ==============================================================================
 
-def avaliar_imagens_com_deepseek(
+def avaliar_tela_com_deepseek(
     prompt_text: str,
-    img1_b64: str,
-    img2_b64: str
+    screenshot_b64: str
 ) -> Dict[str, Any]:
-
     """
-    Envia o prompt e as duas imagens para a API compatível com OpenAI.
-
-    NÃO existe mais fallback aleatório.
-    Se a API não estiver configurada ou falhar, retorna erro explícito.
+    Envia a captura de tela inteira do navegador para a API de visão.
     """
-
-    # --------------------------------------------------------------------------
-    # VERIFICAR API KEY
-    # --------------------------------------------------------------------------
 
     if not API_KEY or API_KEY in (
         "SUA_CHAVE_API_AQUI",
@@ -199,37 +181,16 @@ def avaliar_imagens_com_deepseek(
             "DEEPSEEK_API_KEY=sk-or-v1-xxxxxxxx"
         )
 
-
-    # --------------------------------------------------------------------------
-    # HEADERS
-    # --------------------------------------------------------------------------
-
     headers = {
         "Authorization": f"Bearer {API_KEY}",
         "Content-Type": "application/json"
     }
 
-
-    # --------------------------------------------------------------------------
-    # IMAGENS BASE64
-    # --------------------------------------------------------------------------
-
-    data_url_1 = (
-        img1_b64
-        if img1_b64.startswith("data:")
-        else f"data:image/png;base64,{img1_b64}"
+    data_url = (
+        screenshot_b64
+        if screenshot_b64.startswith("data:")
+        else f"data:image/png;base64,{screenshot_b64}"
     )
-
-    data_url_2 = (
-        img2_b64
-        if img2_b64.startswith("data:")
-        else f"data:image/png;base64,{img2_b64}"
-    )
-
-
-    # --------------------------------------------------------------------------
-    # MENSAGENS
-    # --------------------------------------------------------------------------
 
     messages = [
         {
@@ -243,45 +204,21 @@ def avaliar_imagens_com_deepseek(
                     "type": "text",
                     "text": (
                         f"PROMPT DA TAREFA:\n{prompt_text}\n\n"
-                        "Analise detalhadamente a Imagem 1 e a Imagem 2 "
-                        "com base nas regras do Guia de Comparação Estética.\n\n"
-                        "Qual é a melhor?\n"
+                        "Analise a captura de tela inteira do navegador exibindo as opções A e B.\n"
+                        "Escolha a melhor opção (A ou B) aplicando o Guia de Comparação Estética.\n\n"
                         "Responda exclusivamente em JSON no formato:\n"
-                        '{"escolha": 1, "justificativa": "..."}'
+                        '{"escolha": "A", "justificativa": "..."}'
                     )
                 },
-
-                {
-                    "type": "text",
-                    "text": "=== IMAGEM 1 ==="
-                },
-
                 {
                     "type": "image_url",
                     "image_url": {
-                        "url": data_url_1
-                    }
-                },
-
-                {
-                    "type": "text",
-                    "text": "=== IMAGEM 2 ==="
-                },
-
-                {
-                    "type": "image_url",
-                    "image_url": {
-                        "url": data_url_2
+                        "url": data_url
                     }
                 }
             ]
         }
     ]
-
-
-    # --------------------------------------------------------------------------
-    # PAYLOAD
-    # --------------------------------------------------------------------------
 
     payload = {
         "model": MODEL_NAME,
@@ -289,20 +226,14 @@ def avaliar_imagens_com_deepseek(
         "temperature": 0.1
     }
 
-
-    # --------------------------------------------------------------------------
-    # REQUEST
-    # --------------------------------------------------------------------------
-
     url = f"{API_BASE_URL.rstrip('/')}/chat/completions"
 
     print(
-        f"[API] Enviando imagens para "
+        f"[API] Enviando captura de tela inteira para "
         f"{MODEL_NAME}..."
     )
 
     try:
-
         response = requests.post(
             url,
             headers=headers,
@@ -310,9 +241,7 @@ def avaliar_imagens_com_deepseek(
             timeout=90
         )
 
-        # Mostrar erro detalhado da API
         if not response.ok:
-
             try:
                 error_data = response.json()
                 error_message = json.dumps(
@@ -328,31 +257,21 @@ def avaliar_imagens_com_deepseek(
                 f"{error_message}"
             )
 
-
         res_data = response.json()
-
         content = (
             res_data["choices"][0]["message"]["content"]
             .strip()
         )
 
-
         print(f"[API] Resposta recebida: {content[:300]}")
 
-
-        # ----------------------------------------------------------------------
-        # REMOVER MARKDOWN
-        # ----------------------------------------------------------------------
-
         if "```" in content:
-
             content = re.sub(
                 r"^```(?:json)?\s*",
                 "",
                 content,
                 flags=re.MULTILINE | re.IGNORECASE
             )
-
             content = re.sub(
                 r"```\s*$",
                 "",
@@ -360,45 +279,27 @@ def avaliar_imagens_com_deepseek(
                 flags=re.MULTILINE
             ).strip()
 
-
-        # ----------------------------------------------------------------------
-        # PARSE JSON
-        # ----------------------------------------------------------------------
-
         try:
-
             parsed = json.loads(content)
 
-            choice = (
+            raw_choice = (
                 parsed.get("escolha")
                 or parsed.get("choice")
+                or parsed.get("opcao")
                 or parsed.get("selected_image")
             )
 
+            choice_norm = None
+            if raw_choice is not None:
+                c_str = str(raw_choice).strip().upper()
+                if c_str in ("A", "1", "IMAGE_1", "IMAGEM 1", "IMAGEM_1"):
+                    choice_norm = "A"
+                elif c_str in ("B", "2", "IMAGE_2", "IMAGEM 2", "IMAGEM_2"):
+                    choice_norm = "B"
 
-            if isinstance(choice, str):
-
-                choice_lower = choice.lower()
-
-                if (
-                    choice_lower == "1"
-                    or "image_1" in choice_lower
-                    or "imagem 1" in choice_lower
-                ):
-                    choice = 1
-
-                elif (
-                    choice_lower == "2"
-                    or "image_2" in choice_lower
-                    or "imagem 2" in choice_lower
-                ):
-                    choice = 2
-
-
-            if choice in (1, 2):
-
+            if choice_norm in ("A", "B"):
                 return {
-                    "escolha": int(choice),
+                    "escolha": choice_norm,
                     "justificativa": parsed.get(
                         "justificativa",
                         content
@@ -406,27 +307,20 @@ def avaliar_imagens_com_deepseek(
                 }
 
             raise ValueError(
-                f"JSON recebido, mas escolha inválida: {choice}"
+                f"JSON recebido, mas escolha inválida: {raw_choice}"
             )
 
-
         except json.JSONDecodeError as e:
-
             raise RuntimeError(
                 "A API respondeu, mas não retornou JSON válido.\n"
                 f"Resposta recebida:\n{content}"
             ) from e
 
-
     except requests.exceptions.Timeout as e:
-
         raise RuntimeError(
             "Timeout ao aguardar resposta da API."
         ) from e
-
-
     except requests.exceptions.RequestException as e:
-
         raise RuntimeError(
             f"Erro de conexão com a API: {e}"
         ) from e
@@ -690,414 +584,202 @@ class EvaluatorAutomation:
 
 
     # --------------------------------------------------------------------------
-    # CAPTURAR IMAGEM
+    # CAPTURAR TELA CHEIA
     # --------------------------------------------------------------------------
 
-    def capturar_imagem_b64(self, element) -> str:
-
+    def capturar_tela_cheia_b64(self) -> str:
+        """
+        Captura um screenshot da tela inteira do navegador em base64.
+        """
         try:
-
-            screenshot_png = (
-                element.screenshot_as_png
-            )
-
-            return base64.b64encode(
-                screenshot_png
-            ).decode("utf-8")
-
-
+            screenshot_png = self.driver.get_screenshot_as_png()
+            return base64.b64encode(screenshot_png).decode("utf-8")
         except Exception as e:
-
-            print(
-                f"[ERRO SCREENSHOT] "
-                f"Falha ao capturar imagem: {e}"
-            )
-
+            print(f"[ERRO SCREENSHOT] Falha ao capturar tela cheia: {e}")
             return ""
 
-
     # --------------------------------------------------------------------------
-    # LOCALIZAR IMAGENS E RADIOS
+    # SELECIONAR INPUT (value="a", value="b", etc.)
     # --------------------------------------------------------------------------
 
-    def obter_elementos_imagem_e_radios(
-        self
-    ) -> Tuple[Any, Any, Any, Any]:
+    def clicar_input_opcao(self, opcao: str) -> bool:
+        """
+        Marca o input correspondente no HTML:
+        value="a" -> A
+        value="b" -> B
+        """
+        opcao_str = str(opcao).upper()
 
-        # ----------------------------------------------------------------------
-        # RADIO 1
-        # ----------------------------------------------------------------------
+        if opcao_str in ("A", "1"):
+            target_vals = ["a", "A", "image_1", "1"]
+            key_to_send = "a"
+            alt_key = "1"
+        else:
+            target_vals = ["b", "B", "image_2", "2"]
+            key_to_send = "b"
+            alt_key = "2"
 
-        radio1 = None
+        clicado = False
 
-        for sel in [
-
-            "input[name='selected_image'][value='image_1']",
-            "input.panel-radio[value='image_1']",
-            "input[value='image_1']"
-
-        ]:
-
-            try:
-
-                elems = self.driver.find_elements(
-                    By.CSS_SELECTOR,
-                    sel
-                )
-
-                if elems:
-
-                    radio1 = elems[0]
-                    break
-
-
-            except Exception:
-                pass
-
-
-        # ----------------------------------------------------------------------
-        # RADIO 2
-        # ----------------------------------------------------------------------
-
-        radio2 = None
-
-        for sel in [
-
-            "input[name='selected_image'][value='image_2']",
-            "input.panel-radio[value='image_2']",
-            "input[value='image_2']"
-
-        ]:
-
-            try:
-
-                elems = self.driver.find_elements(
-                    By.CSS_SELECTOR,
-                    sel
-                )
-
-                if elems:
-
-                    radio2 = elems[0]
-                    break
-
-
-            except Exception:
-                pass
-
-
-        # ----------------------------------------------------------------------
-        # IMAGENS
-        # ----------------------------------------------------------------------
-
-        img1 = None
-        img2 = None
-
-
-        if radio1:
-
-            try:
-
-                container1 = radio1.find_element(
-                    By.XPATH,
-                    "./ancestor::*["
-                    "contains(@class, 'card') "
-                    "or contains(@class, 'panel') "
-                    "or contains(@class, 'box') "
-                    "or contains(@class, 'grid') "
-                    "or position()=last()"
-                    "]"
-                )
-
-                imgs1 = container1.find_elements(
-                    By.TAG_NAME,
-                    "img"
-                )
-
-                if imgs1:
-                    img1 = imgs1[0]
-
-
-            except Exception:
-                pass
-
-
-        if radio2:
-
-            try:
-
-                container2 = radio2.find_element(
-                    By.XPATH,
-                    "./ancestor::*["
-                    "contains(@class, 'card') "
-                    "or contains(@class, 'panel') "
-                    "or contains(@class, 'box') "
-                    "or contains(@class, 'grid') "
-                    "or position()=last()"
-                    "]"
-                )
-
-                imgs2 = container2.find_elements(
-                    By.TAG_NAME,
-                    "img"
-                )
-
-                if imgs2:
-                    img2 = imgs2[0]
-
-
-            except Exception:
-                pass
-
-
-        # ----------------------------------------------------------------------
-        # FALLBACK
-        # ----------------------------------------------------------------------
-
-        if not img1 or not img2:
-
-            imgs_page = self.driver.find_elements(
-                By.CSS_SELECTOR,
-                "img.task-image, "
-                "#img1, "
-                "#img2, "
-                ".comparison-grid img, "
-                "img"
-            )
-
-
-            valid_imgs = [
-
-                i for i in imgs_page
-
-                if (
-                    i.size.get("width", 0) > 80
-                    or i.size.get("height", 0) > 80
-                )
-
+        # 1. Tentar encontrar e marcar input no HTML
+        for val in target_vals:
+            selectors = [
+                f"input[value='{val}']",
+                f"input[name='selected_image'][value='{val}']",
+                f"input.panel-radio[value='{val}']",
+                f"input[type='radio'][value='{val}']",
+                f"#radio-{val}",
+                f"#radio-{val.lower()}"
             ]
-
-
-            if len(valid_imgs) >= 2:
-
-                img1 = valid_imgs[0]
-                img2 = valid_imgs[1]
-
-            elif len(imgs_page) >= 2:
-
-                img1 = imgs_page[0]
-                img2 = imgs_page[1]
-
-
-        if not img1 or not img2:
-
-            raise Exception(
-                "Não foi possível localizar "
-                "as Imagens 1 e 2."
-            )
-
-
-        return radio1, radio2, img1, img2
-
-
-    # --------------------------------------------------------------------------
-    # SELECIONAR E SUBMETER
-    # --------------------------------------------------------------------------
-
-    def selecionar_e_submeter(
-        self,
-        escolha: int,
-        radio1,
-        radio2
-    ):
-
-        if escolha not in (1, 2):
-
-            raise ValueError(
-                f"Escolha inválida recebida da IA: {escolha}"
-            )
-
-
-        val_target = f"image_{escolha}"
-
-        print(
-            f"[SELENIUM] Selecionando "
-            f"Imagem {escolha}..."
-        )
-
-
-        target_radio = (
-            radio1
-            if escolha == 1
-            else radio2
-        )
-
-        radio_clicado = False
-
-
-        # ----------------------------------------------------------------------
-        # CLIQUE DIRETO
-        # ----------------------------------------------------------------------
-
-        if target_radio:
-
-            try:
-
-                self.driver.execute_script(
-                    """
-                    arguments[0].checked = true;
-                    arguments[0].dispatchEvent(
-                        new Event('change', {bubbles: true})
-                    );
-                    arguments[0].click();
-                    """,
-                    target_radio
-                )
-
-                radio_clicado = True
-
-                print(
-                    f"[SELENIUM] Radio "
-                    f"{val_target} marcado."
-                )
-
-
-            except Exception as e:
-
-                print(
-                    f"[AVISO CLIQUE RADIO] {e}"
-                )
-
-
-        # ----------------------------------------------------------------------
-        # FALLBACK POR SELETOR
-        # ----------------------------------------------------------------------
-
-        if not radio_clicado:
-
-            radio_selectors = [
-
-                f"input[name='selected_image'][value='{val_target}']",
-
-                f"input.panel-radio[value='{val_target}']",
-
-                f"input[value='{val_target}']",
-
-                f"#radio-{escolha}"
-
-            ]
-
-
-            for r_sel in radio_selectors:
-
+            for sel in selectors:
                 try:
-
-                    radios = self.driver.find_elements(
-                        By.CSS_SELECTOR,
-                        r_sel
-                    )
-
-                    if radios:
-
+                    elems = self.driver.find_elements(By.CSS_SELECTOR, sel)
+                    for elem in elems:
                         self.driver.execute_script(
                             """
                             arguments[0].checked = true;
+                            arguments[0].dispatchEvent(new Event('change', {bubbles: true}));
+                            arguments[0].dispatchEvent(new Event('input', {bubbles: true}));
                             arguments[0].click();
                             """,
-                            radios[0]
+                            elem
                         )
-
-                        print(
-                            f"[SELENIUM] Radio marcado "
-                            f"via seletor: {r_sel}"
-                        )
-
-                        radio_clicado = True
+                        print(f"[SELENIUM] Input marcado: {sel} (value='{val}')")
+                        clicado = True
                         break
+                    if clicado:
+                        break
+                except Exception as e:
+                    print(f"[AVISO CLIQUE INPUT {val}] {e}")
+            if clicado:
+                break
 
-
+        # 2. Tentar clicar em label associado se houver
+        if not clicado:
+            for val in target_vals:
+                try:
+                    labels = self.driver.find_elements(
+                        By.XPATH,
+                        f"//label[contains(@for, '{val}') or .//input[@value='{val}']]"
+                    )
+                    if labels:
+                        self.driver.execute_script("arguments[0].click();", labels[0])
+                        print(f"[SELENIUM] Label clicado para valor '{val}'")
+                        clicado = True
+                        break
                 except Exception:
+                    pass
 
-                    continue
-
-
-        if not radio_clicado:
-
-            raise RuntimeError(
-                f"Não foi possível selecionar "
-                f"Imagem {escolha}."
-            )
-
-
-        # ----------------------------------------------------------------------
-        # TECLA 1 OU 2
-        # ----------------------------------------------------------------------
-
+        # 3. Enviar tecla no teclado (a/1 ou b/2)
         try:
-
-            body = self.driver.find_element(
-                By.TAG_NAME,
-                "body"
-            )
-
-            body.send_keys(str(escolha))
-
+            body = self.driver.find_element(By.TAG_NAME, "body")
+            body.send_keys(key_to_send)
+            body.send_keys(alt_key)
         except Exception:
             pass
 
+        return clicado
 
-        time.sleep(0.5)
+    # --------------------------------------------------------------------------
+    # SUBMETER RESPOSTA (ENTER / BUTTON)
+    # --------------------------------------------------------------------------
 
-
-        # ----------------------------------------------------------------------
-        # ENTER
-        # ----------------------------------------------------------------------
-
-        print(
-            "[SELENIUM] Pressionando ENTER..."
-        )
-
+    def submeter_resposta(self):
+        print("[SELENIUM] Pressionando ENTER...")
         try:
-
-            body = self.driver.find_element(
-                By.TAG_NAME,
-                "body"
-            )
-
+            body = self.driver.find_element(By.TAG_NAME, "body")
             body.send_keys(Keys.ENTER)
-
         except Exception as e:
-
-            print(
-                f"[AVISO ENTER] {e}"
-            )
-
-
-        # ----------------------------------------------------------------------
-        # BOTÃO SUBMIT
-        # ----------------------------------------------------------------------
+            print(f"[AVISO ENTER] {e}")
 
         try:
-
             submits = self.driver.find_elements(
                 By.CSS_SELECTOR,
-                "#submit-btn, "
-                ".submit-btn, "
-                "button[type='submit']"
+                "#submit-btn, .submit-btn, button[type='submit'], input[type='submit'], .btn-submit, button.submit"
             )
-
-
             for btn in submits:
-
-                if btn.is_enabled():
-
-                    btn.click()
+                if btn.is_displayed() and btn.is_enabled():
+                    self.driver.execute_script("arguments[0].click();", btn)
                     break
-
-
         except Exception:
             pass
 
+    # --------------------------------------------------------------------------
+    # VERIFICAR ERRO NA PÁGINA
+    # --------------------------------------------------------------------------
+
+    def verificar_erro_ou_resposta_incorreta(self) -> bool:
+        """
+        Verifica se a página exibe algum aviso ou mensagem de erro após submeter.
+        """
+        error_selectors = [
+            ".error-message", ".alert-danger", ".has-error", "#error-msg",
+            ".feedback-error", ".error", ".incorrect", "[data-testid='error']"
+        ]
+        for sel in error_selectors:
+            try:
+                elems = self.driver.find_elements(By.CSS_SELECTOR, sel)
+                for el in elems:
+                    if el.is_displayed() and el.text.strip():
+                        print(f"[VERIFICAÇÃO] Mensagem de erro detectada ({sel}): {el.text.strip()}")
+                        return True
+            except Exception:
+                pass
+
+        try:
+            body_text = self.driver.find_element(By.TAG_NAME, "body").text.lower()
+            textos_erro = [
+                "resposta incorreta",
+                "tente novamente",
+                "escolha incorreta",
+                "wrong answer",
+                "incorrect",
+                "tente a outra opção",
+                "opção incorreta"
+            ]
+            for msg in textos_erro:
+                if msg in body_text:
+                    print(f"[VERIFICAÇÃO] Texto de erro detectado no HTML: '{msg}'")
+                    return True
+        except Exception:
+            pass
+
+        return False
+
+    # --------------------------------------------------------------------------
+    # SELECIONAR E SUBMETER COM FALLBACK DE ERRO
+    # --------------------------------------------------------------------------
+
+    def selecionar_e_submeter_com_fallback(self, escolha_ia: str) -> str:
+        """
+        Marca a opção da IA (A ou B) e envia. Se a página indicar erro/resposta incorreta,
+        marca automaticamente a outra opção e envia.
+        """
+        opcao_principal = "A" if str(escolha_ia).upper() in ("A", "1", "IMAGE_1") else "B"
+        opcao_oposta = "B" if opcao_principal == "A" else "A"
+
+        print(f"[AUTOMAÇÃO] Selecionando Opção {opcao_principal}...")
+        self.clicar_input_opcao(opcao_principal)
+        self.submeter_resposta()
+
+        time.sleep(1.5)
+
+        if self.verificar_erro_ou_resposta_incorreta():
+            print()
+            print("!" * 70)
+            print(f"[FALLBACK] A opção {opcao_principal} resultou em ERRO / RESPOSTA INCORRETA.")
+            print(f"[FALLBACK] Trocando para a outra opção ({opcao_oposta}) e enviando...")
+            print("!" * 70)
+            print()
+
+            self.clicar_input_opcao(opcao_oposta)
+            self.submeter_resposta()
+            time.sleep(1.5)
+
+            return opcao_oposta
+
+        print(f"[AUTOMAÇÃO] Opção {opcao_principal} submetida com sucesso!")
+        return opcao_principal
 
     # --------------------------------------------------------------------------
     # LOOP PRINCIPAL
@@ -1107,221 +789,84 @@ class EvaluatorAutomation:
         self,
         max_tarefas: int = 100
     ):
-
         self.conectar_ou_navegar()
 
         tarefas_executadas = 0
         prompt_anterior = ""
 
-
         while tarefas_executadas < max_tarefas:
-
             print()
             print("=" * 60)
-            print(
-                f"PROCESSANDO TAREFA "
-                f"#{tarefas_executadas + 1}"
-            )
+            print(f"PROCESSANDO TAREFA #{tarefas_executadas + 1}")
             print("=" * 60)
 
-
             try:
+                # 1. Prompt
+                prompt_text = self.extrair_prompt()
 
-                # --------------------------------------------------------------
-                # 1. PROMPT
-                # --------------------------------------------------------------
-
-                prompt_text = (
-                    self.extrair_prompt()
-                )
-
-
-                # --------------------------------------------------------------
-                # ESPERAR NOVA TAREFA
-                # --------------------------------------------------------------
-
-                if (
-                    prompt_text == prompt_anterior
-                    and tarefas_executadas > 0
-                ):
-
-                    print(
-                        "[SELENIUM] Aguardando "
-                        "nova tarefa..."
-                    )
-
+                if prompt_text == prompt_anterior and tarefas_executadas > 0:
+                    print("[SELENIUM] Aguardando nova tarefa...")
                     time.sleep(2.5)
-
-                    prompt_text = (
-                        self.extrair_prompt()
-                    )
-
+                    prompt_text = self.extrair_prompt()
 
                 prompt_anterior = prompt_text
 
+                # 2. Screenshot Tela Inteira
+                screenshot_b64 = self.capturar_tela_cheia_b64()
 
-                # --------------------------------------------------------------
-                # 2. IMAGENS E RADIOS
-                # --------------------------------------------------------------
-
-                (
-                    radio1,
-                    radio2,
-                    img1_elem,
-                    img2_elem
-                ) = self.obter_elementos_imagem_e_radios()
-
-
-                # --------------------------------------------------------------
-                # 3. SCREENSHOTS
-                # --------------------------------------------------------------
-
-                img1_b64 = (
-                    self.capturar_imagem_b64(
-                        img1_elem
-                    )
-                )
-
-                img2_b64 = (
-                    self.capturar_imagem_b64(
-                        img2_elem
-                    )
-                )
-
-
-                if not img1_b64 or not img2_b64:
-
-                    print(
-                        "[ERRO] Não foi possível "
-                        "capturar as imagens."
-                    )
-
+                if not screenshot_b64:
+                    print("[ERRO] Não foi possível capturar a tela cheia do navegador.")
                     time.sleep(3)
                     continue
 
-
-                # --------------------------------------------------------------
-                # 4. IA
-                # --------------------------------------------------------------
-
-                print(
-                    "[AI] Enviando imagens "
-                    "para análise..."
-                )
-
+                # 3. Análise IA
+                print("[AI] Enviando captura de tela inteira do navegador para análise...")
 
                 try:
-
-                    decisao = (
-                        avaliar_imagens_com_deepseek(
-                            prompt_text,
-                            img1_b64,
-                            img2_b64
-                        )
-                    )
-
-
+                    decisao = avaliar_tela_com_deepseek(prompt_text, screenshot_b64)
                 except Exception as e:
-
                     print()
                     print("!" * 70)
                     print("[ERRO CRÍTICO DA IA]")
                     print(str(e))
                     print("!" * 70)
                     print()
-
-                    print(
-                        "[SEGURANÇA] Nenhuma escolha "
-                        "será feita automaticamente."
-                    )
-
-                    # NÃO escolhe aleatoriamente.
-                    # NÃO envia a tarefa.
+                    print("[SEGURANÇA] Nenhuma escolha será feita automaticamente.")
                     time.sleep(5)
-
                     continue
 
+                escolha_ia = decisao.get("escolha")
+                justificativa = decisao.get("justificativa", "Sem justificativa.")
 
-                # --------------------------------------------------------------
-                # 5. DECISÃO
-                # --------------------------------------------------------------
-
-                escolha = decisao.get(
-                    "escolha"
-                )
-
-                justificativa = decisao.get(
-                    "justificativa",
-                    "Sem justificativa."
-                )
-
-
-                if escolha not in (1, 2):
-
-                    print(
-                        "[ERRO] A IA retornou "
-                        f"uma escolha inválida: {escolha}"
-                    )
-
+                if escolha_ia not in ("A", "B"):
+                    print(f"[ERRO] Escolha inválida retornada pela IA: {escolha_ia}")
                     time.sleep(3)
                     continue
 
-
                 print()
                 print("=" * 60)
-                print(
-                    f"[DECISÃO DA IA] "
-                    f"IMAGEM {escolha}"
-                )
-                print(
-                    f"[JUSTIFICATIVA] "
-                    f"{justificativa}"
-                )
+                print(f"[DECISÃO DA IA] OPÇÃO {escolha_ia}")
+                print(f"[JUSTIFICATIVA] {justificativa}")
                 print("=" * 60)
                 print()
 
-
-                # --------------------------------------------------------------
-                # 6. SELECIONAR E ENVIAR
-                # --------------------------------------------------------------
-
-                self.selecionar_e_submeter(
-                    escolha,
-                    radio1,
-                    radio2
-                )
-
+                # 4. Marcar Input e Submeter (com Fallback automático se errou)
+                opcao_final = self.selecionar_e_submeter_com_fallback(escolha_ia)
 
                 tarefas_executadas += 1
-
                 time.sleep(2.5)
 
-
             except KeyboardInterrupt:
-
-                print(
-                    "\n[AUTOMAÇÃO] "
-                    "Interrompida pelo usuário."
-                )
-
+                print("\n[AUTOMAÇÃO] Interrompida pelo usuário.")
                 break
 
-
             except Exception as e:
-
-                print(
-                    f"[ERRO NO LOOP] {e}"
-                )
-
+                print(f"[ERRO NO LOOP] {e}")
                 time.sleep(3)
-
 
         print()
         print("=" * 60)
-        print(
-            f"[FIM] Total de tarefas processadas: "
-            f"{tarefas_executadas}"
-        )
+        print(f"[FIM] Total de tarefas processadas: {tarefas_executadas}")
         print("=" * 60)
 
 
